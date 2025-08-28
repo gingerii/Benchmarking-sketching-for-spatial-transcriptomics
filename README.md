@@ -1,7 +1,7 @@
 # Benchmarking-sketching-for-spatial-transcriptomics
 This repository contains the analysis code and Jupyter notebooks supporting the paper "Benchmarking sketching for spatial transcriptomics". The study evaluates how common sketching/subsampling strategies—uniform sampling, leverage-score sampling, Geosketch (minimax/Hausdorff), and scSampler (maximin)—perform on spatial transcriptomics (ST) data, and tests three input representations: PCA embeddings, raw spatial coordinates, and spatially smoothed embeddings. We show that expression-only sketching often over-samples high-variability regions and distorts tissue architecture, while a spatially smoothed leverage-score extension recovers rare cell states while preserving uniform spatial coverage.
 
-[Analysis pipeline](./figure_1.pdf)
+[Analysis pipeline](./figure_1.png)
 
 ## Repository layout 
 
