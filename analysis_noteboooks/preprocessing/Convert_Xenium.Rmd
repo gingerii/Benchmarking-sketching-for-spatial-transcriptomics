@@ -1,0 +1,172 @@
+---
+title: "Annotated Xenium data cleaning"
+output: html_notebook
+---
+
+
+
+```{r}
+library(SubcellularSpatialData)
+library(ExperimentHub)
+```
+
+```{r}
+options(timeout = 1000)
+eh = ExperimentHub()
+query(eh, "SubcellularSpatialData")
+```
+
+
+Retreive data like so: 
+```{r}
+#Xenium brain data
+#data = eh[["EH8230"]]
+#Xenium breast data
+data = eh[["EH8567"]] #fails
+```
+
+
+The data is in the form of a transcript table where the following columns are present across all datasets:
+
+    sample_id - Unique identifier for the sample the transcript belongs to.
+    cell - Unique identifier for the cell the transcript belongs to (NA if it is not allocated to any cell).
+    gene - Gene name or identity of the transcript.
+    genetype - Type of target (gene or control probe).
+    x - x-coordinate of the transcript.
+    y - y-coordinate of the transcript.
+    counts - Number of transcripts detected at this location (always 1 for NanoString CosMx and 10x Xenium as each row is an individual detection).
+    region - Annotated histological region for the transcript.
+    technology - Name of the platform the data was sequenced on.
+Lets load a small dataset 
+
+```{r}
+#data(tx_small)
+head(data)
+```
+
+
+
+```{r}
+unique(data$sample_id)
+```
+Lets just keep one of the sections for now, way to large to work with otherwise 
+
+```{r}
+#data = data[data$sample_id == "Xenium_V1_FF_Mouse_Brain_MultiSection_1_outs",]
+data = data[data$sample_id == "IDC",]
+```
+
+```{r}
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# data |>
+#   ggplot(aes(x,y,colour = region)) +
+#   geom_point(pch = ".",show.legend = FALSE)+
+#   theme_minimal()
+
+data |>
+  ggplot(aes(x,y,colour = region))+
+  geom_point(pch = ".",show.legend = TRUE)+
+  theme_minimal()
+```
+
+
+
+
+Now lets turn into a spatial experiment 
+
+```{r}
+library(SpatialExperiment)
+
+#data = tx2spe(data,bin = 'cell')
+sce = tx2spe(data,bin = "cell")
+```
+
+```{r}
+#data
+sce
+```
+Now we want to write this to a h5ad data structure, first conver to seurat. 
+```{r}
+
+```
+
+
+
+Ignore this comment block, save in case
+
+```{r}
+# env <- basilisk::BasiliskEnvironment("pyEnvForR",
+#                                      "zellkonverter", 
+#                                      packages =
+#                                        c("anndata==0.10.6",
+#                                          "h5py==3.10.0",
+#                                          "hdf5==1.14.3",
+#                                          "natsort==8.4.0",
+#                                          "numpy==1.26.4",
+#                                          "packaging==24.0",
+#                                          "pandas==2.2.1",
+#                                          "python==3.12.2",
+#                                          "scipy==1.12.0")
+# )
+# 
+# basilisk::basiliskStart(env)
+```
+
+
+Convert to Seurat Object! 
+Note: will only work if you binned by cells. If you dind't then you need to manually convert to Seurat object! 
+
+
+Manual S
+```{r}
+#easy way if using cell binning: 
+object <- as.Seurat(sce,counts = "counts",data = NULL)
+
+#manual way: 
+# object <- CreateSeuratObject(counts = counts(sce))
+# object@meta.data
+```
+```{r}
+object
+```
+
+
+```{r}
+VlnPlot(object,features = c("nCount_originalexp"))
+```
+
+
+```{r}
+saveRDS(object,"/Volumes/igingerich/public_data/xenium_brain/processed_data/xenium.rds")
+```
+
+
+```{r}
+library(SeuratDisk)
+```
+
+
+```{r}
+#object[["RNA"]] <- as(object = object[["RNA"]],Class = "Assay")
+SaveH5Seurat(object,filename = "/Volumes/igingerich/public_data/xenium_cancer/processed_data/xenium_cancer_unprocessed.h5Seurat",overwrite = T)
+Convert("/Volumes/igingerich/public_data/xenium_cancer/processed_data/xenium_cancer_unprocessed.h5Seurat",overwrite = T,assay = "originalexp",dest = 'h5ad')
+```
+```{r}
+coords=as.data.frame(spatialCoords(sce))
+write.csv(coords,"/Volumes/igingerich/public_data/xenium_cancer/processed_data/coordinates.csv")
+```
+
+```{r}
+df=as.data.frame(colData(data))
+unique(df$region)
+```
+```{r}
+VlnPlot(object,features = "nCount_originalexp")
+```
+

@@ -1,0 +1,318 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(Seurat)
+library(SeuratDisk)
+```
+
+```{r}
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/mouse_MERFISH_data/data/region0_raw_data_only.h5seurat")
+```
+```{r}
+
+adata<-FindVariableFeatures(adata, nfeatures = 3000)
+adata<- LeverageScore(adata)
+```
+```{r}
+#save as a .csv file: 
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/mouse_MERFISH_data/data/leverage_scores.csv",row.names = F)
+
+```
+
+
+#now for the brain: 
+```{r}
+Convert("/Volumes/igingerich/public_data/xenium_brain/processed_data/xenium_counts_only.h5ad",
+        dest = 'h5seurat',overwrite = T)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/xenium_brain/processed_data/xenium_counts_only.h5Seurat",meta.data = F,misc = F)
+```
+
+```{r}
+adata<-FindVariableFeatures(adata, nfeatures = 600)
+adata<- LeverageScore(adata)
+```
+
+```{r}
+#save as a .csv file: 
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/xenium_brain/processed_data/leverage_scores.csv",row.names = F)
+```
+
+
+
+
+Now for the Xenium Cancer dataset: 
+```{r}
+Convert("/Volumes/igingerich/public_data/xenium_cancer/processed_data/xenium_cancer_counts_only.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/xenium_cancer/processed_data/xenium_cancer_counts_only.h5Seurat",meta.data = F,misc = F)
+```
+
+```{r}
+adata<-FindVariableFeatures(adata, nfeatures = 600)
+adata<- LeverageScore(adata)
+```
+
+```{r}
+#save as a .csv file: 
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/xenium_cancer/processed_data/leverage_scores.csv",row.names = F)
+```
+
+
+Now for the Dots and Stripes 
+```{r}
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/simulation/processed_data/dots_counts_only.h5seurat",meta.data = F,misc = F)
+
+```
+```{r}
+adata<-FindVariableFeatures(adata, nfeatures = 200)
+adata<- LeverageScore(adata)
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/simulation/processed_data/dots_leverage_scores.csv",row.names = F)
+```
+
+Stripes 
+```{r}
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/simulation/processed_data/stripes_counts_only.h5seurat",meta.data = F,misc = F)
+adata<-FindVariableFeatures(adata, nfeatures = 200)
+adata<- LeverageScore(adata)
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/simulation/processed_data/stripes_leverage_scores.csv",row.names = F)
+
+```
+Now for the Xenium 5k brain: 
+
+```{r}
+Convert("/Volumes/igingerich/public_data/xenium_brain_5k/processed_data/xenium_brain_5k_counts_only.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/xenium_brain_5k/processed_data/xenium_brain_5k_counts_only.h5Seurat",meta.data = F,misc = F)
+```
+
+```{r}
+adata<-FindVariableFeatures(adata, nfeatures = 3000)
+adata<- LeverageScore(adata)
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/xenium_brain_5k/processed_data/leverage_scores.csv",row.names = F)
+```
+
+Now for the Xenium Lung: 
+```{r}
+Convert("/Volumes/igingerich/public_data/xenium_lung/processed_data/xenium_lung_counts_only.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/xenium_lung/processed_data/xenium_lung_counts_only.h5Seurat",meta.data = F,misc = F)
+```
+
+```{r}
+adata<-FindVariableFeatures(adata, nfeatures = 600)
+adata<- LeverageScore(adata)
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/xenium_lung/processed_data/leverage_scores.csv",row.names = F)
+```
+
+Now for the merfish sagital mouse brain: 
+
+```{r}
+# Convert("/Volumes/igingerich/public_data/allen_institute_data/processed_data/merfish_sagital_brain_counts_only.h5ad",
+#         dest = 'h5seurat',overwrite = T)
+# adata = LoadH5Seurat("/Volumes/igingerich/public_data/allen_institute_data/processed_data/merfish_sagital_brain_counts_only.h5Seurat",meta.data = F,misc = F)
+# Read the Parquet file
+table <- read_parquet('/Volumes/igingerich/public_data/allen_institute_data/processed_data/adata_matrix.parquet')
+# Convert to matrix
+data <- as.matrix(as.data.frame(t(table)))
+
+# Create a Seurat object
+adata <- CreateSeuratObject(counts = data)
+```
+
+```{r}
+adata <- NormalizeData(adata)
+adata<-FindVariableFeatures(adata,nfeatures = 1200)
+adata<- LeverageScore(adata)
+ 
+```
+
+
+Now for the visium HD brain: 
+
+```{r}
+Convert("/Volumes/igingerich/public_data/visium_HD_brain/processed_data/counts_only_8um.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/visium_HD_brain/processed_data/counts_only_8um.h5Seurat",meta.data = F,misc = F)
+```
+```{r}
+#adata <- NormalizeData(adata)
+adata<-FindVariableFeatures(adata,nfeatures = 3000)
+adata<- LeverageScore(adata)
+
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/visium_HD_brain/processed_data//leverage_scores.csv",row.names = F)
+```
+
+Now for all of the simulated data: 
+```{r}
+Convert("/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/stripes/data/normalized_counts_only.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/stripes/data/normalized_counts_only.h5Seurat",meta.data = F,misc = F)
+```
+
+
+```{r}
+#adata <- NormalizeData(adata)
+adata<-FindVariableFeatures(adata,nfeatures = 3000)
+adata<- LeverageScore(adata)
+
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/stripes/data/leverage_scores.csv",row.names = F)
+```
+
+To compare, we need to also run leverage score on 20 PCs as apposed to the full gene matrix: 
+```{r}
+Convert("/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/stripes/data/smoothed_pca_kNN_30_beta_0.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/stripes/data/smoothed_pca_kNN_30_beta_0.h5Seurat",meta.data = F,misc = F)
+
+```
+
+
+
+
+
+Now I will compute the leverage score on the spatially smoothed and reduced rank-reconstructed data 
+Note: the old way was to compute on the full reconstructed counts matrix. Instead make a custom assay object and run on that! 
+
+
+```{r}
+Convert("/Volumes/igingerich/public_data/xenium_lung/processed_data/pca_data.h5ad",
+        dest = 'h5seurat',overwrite = F)
+adata = LoadH5Seurat("/Volumes/igingerich/public_data/xenium_lung/processed_data/pca_data.h5Seurat",meta.data = F,misc = F)
+mat <- GetAssayData(adata, slot = "counts")
+
+# Assign fake "gene" names (since these are PCs)
+rownames(mat) <- paste0("PC_", seq_len(nrow(mat)))
+
+
+#remake the seurat object! 
+adata <- CreateSeuratObject(counts = mat)
+
+#explicitly make the data layer: 
+adata <- SetAssayData(adata, assay = "RNA", layer = "data", new.data = GetAssayData(adata, layer = "counts"))
+adata<-FindVariableFeatures(adata,nfeatures = 3000)
+adata<- LeverageScore(adata,layer = 'data')
+
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/xenium_lung/processed_data/leverage_scores_pca.csv",row.names = F)
+```
+Pull out the matrix, assign fake gene names, then re-build the object: 
+```{r}
+mat <- GetAssayData(adata, slot = "counts")
+
+# Assign fake "gene" names (since these are PCs)
+rownames(mat) <- paste0("PC_", seq_len(nrow(mat)))
+
+
+#remake the seurat object! 
+adata <- CreateSeuratObject(counts = mat)
+
+#explicitly make the data layer: 
+adata <- SetAssayData(adata, assay = "RNA", layer = "data", new.data = GetAssayData(adata, layer = "counts"))
+adata<-FindVariableFeatures(adata,nfeatures = 3000)
+adata<- LeverageScore(adata,layer = 'data')
+
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/stripes/data/leverage_scores_smoothed_pca.csv",row.names = F)
+```
+
+
+
+```{r}
+adata<-FindVariableFeatures(adata,nfeatures = 3000)
+adata<- LeverageScore(adata,layer = 'data')
+
+score = adata$leverage.score
+df = data.frame(
+  
+  leverage_score = score
+)
+
+
+write.csv(df,"/Volumes/igingerich/public_data/simulations_for_sketching_analysis/visium_like_data/radial/data/leverage_scores_smoothed_pca.csv",row.names = F)
+```
+```{r}
+adata
+```
+

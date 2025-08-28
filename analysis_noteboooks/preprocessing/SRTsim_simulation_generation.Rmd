@@ -1,0 +1,191 @@
+---
+title: "SRTsim test"
+output: html_notebook
+---
+
+```{r}
+devtools::install_github('xzhoulab/SRTsim')
+```
+
+```{r}
+library(SRTsim)
+library(ggplot2)
+library(arrow)
+```
+
+
+Activate shiny app
+```{r}
+shinySRT1 <- SRTsim_shiny()
+```
+
+
+
+
+Save our fake data 
+```{r}
+simSRT1 <- Shiny2SRT(shinySRT1)
+```
+
+First save the raw data object
+```{r}
+saveRDS(simSRT1, file = "/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/complex/unprocessed_object.rds")
+```
+
+
+Now lets save the original counts as a parquet file. 
+```{r}
+write_parquet(as.data.frame(summary(simSRT1@simCounts)), "/Volumes/igingerich/public_data/simulations_for_sketching_analysis/visium_like_data/stripes/matrix_files/stripes.parquet")
+
+
+```
+
+
+
+
+Reproduce count data with parameter stored in the obeject 
+```{r}
+newCT1  <- reGenCountshiny(simSRT1)
+```
+
+
+
+```{r}
+object <- readRDS("/Volumes/igingerich/public_data/simulation/data_from_R/dots/unprocessed_object.rds")
+```
+
+
+
+
+
+
+
+simulate new 
+```{r}
+new_counts<-reGenCountshiny(object,NewSeed =2)
+```
+
+Save a bunch of new count matrices as .parquet file for use by RASP 
+```{r}
+for (seed_number in 21:100){
+  new_counts <- reGenCountshiny(object, NewSeed = seed_number)
+  
+  # Convert new counts to sparse matrix
+  new_counts_sparse <- as(new_counts, "sparseMatrix")
+  
+  # Construct the file name using the current seed number
+  file_name <- paste0("/Volumes/igingerich/public_data/simulation/data_from_R/dots/matrix_files/dots_", seed_number, ".parquet")
+  
+  # Write the sparse matrix to a parquet file
+  write_parquet(as.data.frame(summary(new_counts_sparse)), file_name)
+  print(file_name)
+}
+
+
+```
+
+
+
+Ok, to port over to Python for processing we need to save the following information: 
+
+1. The raw counts 
+2. x and y coords 
+3. cell type identities 
+4. fold change 
+
+First lets take care of the metadata data: 
+```{r}
+df=as.data.frame(simSRT1@simcolData)
+
+filename = "/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/complex/metadata.csv"
+write.csv(df,file = filename,row.names = T )
+```
+
+
+Now lets save the raw counts, temporarily as a .csv file 
+Note that this is a dumb way to do it but it is temporary. 
+ 
+```{r}
+dense_matrix <- as.matrix(simSRT1@simCounts)
+filename = "/Volumes/igingerich/public_data/simulations_for_sketching_analysis/xenium_like_data/complex/counts.csv"
+write.csv(dense_matrix, file = filename, row.names = T)
+```
+
+
+
+
+
+Save as a parquet file 
+
+
+```{r}
+library(arrow)
+```
+
+```{r}
+
+write_parquet(as.data.frame(summary(object@simCounts)), "/Volumes/igingerich/public_data/simulation/data_from_R/dots/matrix_files/dots_1.parquet")
+```
+
+
+
+
+
+For choosing various imput paramters for the simulation use the following; 
+```{r}
+simulate_and_plot_nb <- function(mean, dispersion, zero_percent_target, num_points = 1000, num_bins = 30) {
+  # Calculate size and prob parameters for rnbinom
+  size <- 1 / dispersion
+  prob <- size / (size + mean)
+
+  # Simulate data
+  data <- rnbinom(num_points, size = size, prob = prob)
+
+  # Calculate current zero percentage
+  current_zero_percent <- sum(data == 0) / num_points * 100
+
+  # Determine the number of zeros needed to match the target zero percentage
+  target_zero_count <- round(zero_percent_target / 100 * num_points)
+  current_zero_count <- sum(data == 0)
+
+  # Adjust the number of zeros in the data
+  if (target_zero_count > current_zero_count) {
+    # If we need more zeros, randomly select from non-zero values to change to zero
+    non_zero_indices <- which(data != 0)
+    additional_zeros_needed <- target_zero_count - current_zero_count
+    zeros_to_add <- sample(non_zero_indices, additional_zeros_needed, replace = FALSE)
+    data[zeros_to_add] <- 0
+  } else if (target_zero_count < current_zero_count) {
+    # If we need fewer zeros, randomly select zeros to turn into ones
+    zero_indices <- which(data == 0)
+    zeros_to_remove <- current_zero_count - target_zero_count
+    zeros_to_change <- sample(zero_indices, zeros_to_remove, replace = FALSE)
+    data[zeros_to_change] <- 1  # Replace zeros with ones or another small value
+  }
+
+  # Create a data frame for plotting
+  data_df <- data.frame(counts = data)
+
+  # Create plot
+  plot <- ggplot(data_df, aes(x = factor(counts))) + 
+    geom_bar(fill = "skyblue") +
+    labs(title = paste("Negative Binomial Distribution\n",
+                       "Mean:", mean, 
+                       "| Dispersion:", dispersion,
+                       "| Set Zero %:", zero_percent_target),
+         x = "Counts", 
+         y = "Frequency") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    scale_x_discrete(labels = function(x) ifelse(as.numeric(x) %% (num_bins/10) == 0, x, ""))
+
+  # Print plot
+  print(plot)
+}
+```
+
+
+```{r}
+simulate_and_plot_nb(mean = 10, dispersion = 0.8, zero_percent_target = .0,num_points = 1000)
+```
+
