@@ -15,3 +15,4 @@ Large ST datasets used in the paper are not stored in this repository. See the p
 ## Contact
 For questions about code or results, open an issue on this repo or contact ian.gingerich.gr@dartmouth.edu
 
+[![DOI](https://zenodo.org/badge/1046382941.svg)](https://doi.org/10.5281/zenodo.19609435)
